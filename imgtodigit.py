@@ -42,3 +42,4 @@ prediction = model.predict(x_test[0].reshape(1, 784))
 print("Predicted digit:", np.argmax(prediction))
 print("Actual digit:", y_test[0])
 
+model.save("mnist_model.keras")
