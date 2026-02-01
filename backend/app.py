@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
 MODEL_PATH = os.path.join(BASE_DIR, "mnist_model.keras")
 
-# ---------- App ----------
+# ---------- App (MUST COME FIRST) ----------
 app = Flask(
     __name__,
     static_folder=FRONTEND_DIR,
@@ -34,13 +34,25 @@ def predict():
     try:
         file = request.files["image"]
 
+        # Open image
         image = Image.open(io.BytesIO(file.read())).convert("L")
+
+        # Invert colors
         image = ImageOps.invert(image)
-        image = image.resize((28, 28))
 
+        # Crop digit
+        bbox = image.getbbox()
+        if bbox:
+            image = image.crop(bbox)
+
+        # Resize correctly
+        image = image.resize((28, 28), Image.LANCZOS)
+
+        # Convert to numpy
         img = np.array(image) / 255.0
-        img = img.reshape(1, 784)
+        img = img.reshape(1, 28, 28, 1)
 
+        # Predict
         prediction = model.predict(img, verbose=0)
         digit = int(np.argmax(prediction))
         confidence = float(np.max(prediction))
